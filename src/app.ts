@@ -1,8 +1,8 @@
 import express from 'express';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
-import Quiz from './models/Quiz'; // Modèle Quiz pour récupérer les quizz depuis MongoDB si nécessaire
-
+import Quiz from './models/Quiz';
+import quizRoutes from './routes/quizRoutes';
 const app = express();
 app.use(express.json());
 
@@ -51,7 +51,7 @@ app.get('/creerquizz', (req, res) => {
 // Routes API
 app.use('/', authRoutes);  // POST /register, POST /login, GET /profile
 app.use('/', userRoutes);  // GET /users, POST /users
-
+app.use('/', quizRoutes);
 // Middleware 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });

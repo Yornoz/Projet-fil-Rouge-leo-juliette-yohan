@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Les Quizz - QuIsen</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/">Qu<span class="text-danger">Isen</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item"><a class="nav-link" href="/">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="/users">Utilisateurs</a></li>
+          <li class="nav-item ms-2"><a class="btn btn-start fw-bold" href="/mesquizz">Mes quizz</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Container -->
+  <div class="container mt-5 pt-5">
+    <h2 class="mb-4 text-center">Tous les Quizz</h2>
+
+    <div class="row" id="quizzesList">
+      <% quizzes.forEach(function(quiz) { %>
+        <div class="col-md-4 mb-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title"><%= quiz.title %></h5>
+              <p class="card-text"><%= quiz.description %></p>
+              <small class="text-muted mb-2">Créé par : <%= quiz.user.name %> le <%= quiz.createdAt.toLocaleDateString('fr-FR') %></small>
+              
+              <!-- Vote -->
+              <div class="mt-auto">
+                <button class="btn btn-primary btn-vote" data-id="<%= quiz._id %>">
+                  Voter
+                </button>
+                <span class="ms-2 badge bg-success" id="votes-<%= quiz._id %>">
+                  <%= quiz.votes || 0 %> votes
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <script>
+    // Gestion du vote
+    document.querySelectorAll('.btn-vote').forEach(button => {
+      button.addEventListener('click', async () => {
+        const quizId = button.dataset.id;
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          alert('Connectez-vous pour voter.');
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/quizzes/vote/${quizId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            alert(data.error || 'Erreur lors du vote');
+            return;
+          }
+
+          // Mettre à jour le compteur de votes
+          document.getElementById(`votes-${quizId}`).textContent = `${data.votes} votes`;
+
+        } catch (err) {
+          console.error(err);
+          alert('Erreur serveur');
+        }
+      });
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
