@@ -1,7 +1,7 @@
 import express from 'express';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
-import Quiz from './models/Quiz'; // Pour récupérer les quizz depuis MongoDB si nécessaire
+import Quiz from './models/Quiz'; // Modèle Quiz pour récupérer les quizz depuis MongoDB si nécessaire
 
 const app = express();
 app.use(express.json());
@@ -9,6 +9,9 @@ app.use(express.json());
 // Configurer EJS
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
+
+// Servir les fichiers statiques
+app.use(express.static(__dirname + '/public'));
 
 // Page d'accueil
 app.get('/', (req, res) => {
@@ -24,25 +27,30 @@ app.get('/users', (req, res) => {
   res.render('users');
 });
 
-// Page des Quizz accessible à tous
-app.get('/quizzes', async (req, res) => {
+// Page intermédiaire Mes Quizz accessible à tous
+app.get('/mesquizz', (req, res) => {
+  res.render('mesQuizz'); // Cette page contiendra les 2 boutons (Voir / Créer)
+});
+
+// Page pour voir tous les quizz
+app.get('/lesquizz', async (req, res) => {
   try {
-    // Récupération des quizz depuis MongoDB si nécessaire
-    // const quizzes = await Quiz.find().populate('user', 'name');
-    // Pour l'instant, tableau vide pour éviter l'erreur serveur
-    res.render('quizzes', { quizzes: [] });
+    const quizzes = await Quiz.find().populate('user', 'name').sort({ createdAt: -1 });
+    res.render('LesQuizz', { quizzes });
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur serveur');
   }
 });
 
+// Page pour créer un nouveau quizz
+app.get('/creerquizz', (req, res) => {
+  res.render('CreerQuizz'); // Formulaire pour créer un quizz
+});
+
 // Routes API
 app.use('/', authRoutes);  // POST /register, POST /login, GET /profile
 app.use('/', userRoutes);  // GET /users, POST /users
-
-// Servir les fichiers statiques (après les routes dynamiques pour éviter conflits)
-app.use(express.static(__dirname + '/public'));
 
 // Middleware 404
 app.use((req, res) => {
