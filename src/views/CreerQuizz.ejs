@@ -6,8 +6,37 @@
   <title>Créer un Quizz - QuIsen</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .hero {
+      margin-top: 80px;
+      text-align: center;
+    }
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border: none;
+      font-weight: bold;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    label {
+      font-weight: 500;
+    }
+    h2 {
+      color: #007bff;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
 <body>
+
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
     <div class="container">
@@ -19,47 +48,48 @@
         <ul class="navbar-nav ms-auto align-items-center">
           <li class="nav-item"><a class="nav-link" href="/">Accueil</a></li>
           <li class="nav-item"><a class="nav-link" href="/mesquizz">Mes Quizz</a></li>
-          <li class="nav-item"><a class="nav-link" href="/users">Utilisateurs</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <div class="container mt-5 pt-5">
-    <h2 class="mb-4 text-center">Créer un nouveau quizz</h2>
-
-    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
-      <div class="card-body">
-        <form id="createQuizForm">
-          <div class="mb-3">
-            <label for="title" class="form-label">Titre du quizz</label>
-            <input type="text" class="form-control" id="title" placeholder="Ex: Culture générale" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" id="description" rows="3" placeholder="Quelques mots sur ce quizz..." required></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-primary w-100">Créer le quizz</button>
-        </form>
+  <!-- Formulaire création Quizz -->
+  <div class="container hero">
+    <div class="row justify-content-center">
+      <div class="col-md-7 col-lg-6">
+        <div class="card p-4">
+          <h2 class="text-center">Créer un nouveau Quizz</h2>
+          <form id="quizForm">
+            <div class="mb-3">
+              <label for="title" class="form-label">Titre du Quizz</label>
+              <input type="text" class="form-control" id="title" placeholder="Entrez le titre" required>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="description" rows="3" placeholder="Décrivez votre quizz" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="options" class="form-label">Options (séparées par des virgules)</label>
+              <input type="text" class="form-control" id="options" placeholder="Option1, Option2, Option3" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Créer le Quizz</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const form = document.getElementById('createQuizForm');
-
+    const form = document.getElementById('quizForm');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const title = document.getElementById('title').value;
       const description = document.getElementById('description').value;
+      const options = document.getElementById('options').value.split(',').map(o => o.trim());
       const token = localStorage.getItem('token');
 
       if (!token) {
-        alert('Veuillez vous connecter pour créer un quizz.');
-        window.location.href = '/login';
+        alert('Connectez-vous pour créer un quizz.');
         return;
       }
 
@@ -70,7 +100,7 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ title, description })
+          body: JSON.stringify({ title, description, options })
         });
 
         const data = await res.json();
@@ -79,14 +109,11 @@
           return;
         }
 
-        alert('Quizz créé avec succès !');
-        form.reset();
-        // Optionnel : rediriger vers la liste des quizz
-        window.location.href = '/lesquizz';
-
+        // Rediriger vers la page Mes Quizz
+        window.location.href = '/mesquizz';
       } catch (err) {
-        console.error(err);
         alert('Erreur serveur');
+        console.error(err);
       }
     });
   </script>
