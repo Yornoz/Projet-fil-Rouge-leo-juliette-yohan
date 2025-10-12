@@ -1,7 +1,3 @@
-<<<<<<< Updated upstream
-# projet
-projet quizz
-=======
 # TP Mongoose CRUD
 
 Projet de base pour le TP d'intégration MongoDB avec Express et TypeScript.
@@ -130,4 +126,3 @@ Liste des quizz disponibles avec auteur et bouton Jouer :
 authMiddleware → Vérifie la présence et la validité du token JWT.
 
 roleMiddleware(role) → Vérifie le rôle utilisateur (admin, user...).
->>>>>>> Stashed changes
