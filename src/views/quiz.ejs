@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= quiz.title %> - QuIsen</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <div class="container py-5">
+    <h2 class="mb-2"><%= quiz.title %></h2>
+    <p class="text-muted mb-4"><%= quiz.description %></p>
+
+    <form id="playForm">
+      <% quiz.questions.forEach(function(q, qi){ %>
+        <div class="card p-3 mb-3">
+          <strong>Q<%= qi+1 %>. <%= q.text %></strong>
+          <div class="mt-2">
+            <% q.choices.forEach(function(c, ci){ %>
+              <div class="form-check">
+                <% if (q.allowMultiple) { %>
+                  <input class="form-check-input" type="checkbox" name="q-<%= qi %>" value="<%= ci %>">
+                <% } else { %>
+                  <input class="form-check-input" type="radio" name="q-<%= qi %>" value="<%= ci %>">
+                <% } %>
+                <label class="form-check-label"><%= c.text %></label>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+
+      <button type="submit" class="btn btn-primary">Soumettre</button>
+    </form>
+
+    <!-- Zone d’affichage du résultat -->
+    <div id="result" class="alert alert-info mt-3 d-none"></div>
+  </div>
+
+  <script>
+    document.getElementById('playForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Construction du tableau de réponses
+      const answers = [];
+      <% quiz.questions.forEach(function(q, qi){ %>
+        (function(){
+          const name = 'q-<%= qi %>';
+          const inputs = Array.from(document.querySelectorAll(`[name="${name}"]`));
+          if (<%= q.allowMultiple ? 'true' : 'false' %>) {
+            const vals = inputs.filter(i => i.checked).map(i => parseInt(i.value));
+            answers.push(vals);
+          } else {
+            const sel = inputs.find(i => i.checked);
+            answers.push(sel ? parseInt(sel.value) : -1);
+          }
+        })();
+      <% }) %>
+
+      // Appel API
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch('/api/quizzes/<%= quiz._id %>/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ answers })
+        });
+
+        const data = await res.json();
+        const div = document.getElementById('result');
+
+        if (!res.ok) {
+          div.classList.remove('alert-info', 'd-none');
+          div.classList.add('alert-danger');
+          div.textContent = data.error || 'Erreur lors de la soumission du quizz.';
+          return;
+        }
+
+        // Afficher le score
+        div.classList.remove('d-none', 'alert-danger');
+        div.classList.add('alert-info');
+        div.textContent = `✅ Score : ${data.score} / ${data.total}`;
+      } catch (err) {
+        const div = document.getElementById('result');
+        div.classList.remove('d-none', 'alert-info');
+        div.classList.add('alert-danger');
+        div.textContent = 'Erreur réseau ou serveur.';
+        console.error(err);
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
