@@ -3,8 +3,10 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import Quiz from './models/Quiz';
 import quizRoutes from './routes/quizRoutes';
+
 const app = express();
 app.use(express.json());
+app.use(quizRoutes);
 
 // Configurer EJS
 app.set('view engine', 'ejs');
@@ -35,7 +37,7 @@ app.get('/mesquizz', (req, res) => {
 // Page pour voir tous les quizz
 app.get('/lesquizz', async (req, res) => {
   try {
-    const quizzes = await Quiz.find().populate('user', 'name').sort({ createdAt: -1 });
+    const quizzes = await Quiz.find().populate('author', 'name').sort({ createdAt: -1 });
     res.render('LesQuizz', { quizzes });
   } catch (err) {
     console.error(err);
@@ -51,7 +53,7 @@ app.get('/creerquizz', (req, res) => {
 // Routes API
 app.use('/', authRoutes);  // POST /register, POST /login, GET /profile
 app.use('/', userRoutes);  // GET /users, POST /users
-app.use('/', quizRoutes);
+
 // Middleware 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });

@@ -1,50 +1,95 @@
+// routes/quizRoutes.ts
 import { Router, Request, Response } from 'express';
-import Quiz from '../models/Quiz';
 import { authMiddleware } from '../middleware/authMiddleware';
+import Quiz from '../models/Quiz';
+import { createQuiz, getQuizById, submitQuiz } from '../controllers/quizController';
 
 const router = Router();
 
-// Interface locale identique à celle de authMiddleware
-interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-}
-
-// Créer un nouveau quizz (auth requis)
-router.post('/api/quizzes', authMiddleware, async (req: AuthRequest, res: Response) => {
+/**
+ * GET /api/quizzes
+ * Liste tous les quizz
+ */
+router.get('/api/quizzes', async (_req: Request, res: Response) => {
   try {
-    const { title, description, options } = req.body;
-
-    if (!req.user) {
-      return res.status(401).json({ error: 'Utilisateur non authentifié' });
-    }
-
-    const quiz = await Quiz.create({
-      title,
-      description,
-      options,
-      user: req.user._id
-    });
-
-    res.status(201).json(quiz);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur serveur' });
+    const quizzes = await Quiz.find().select('-__v').populate('author', 'name');
+    res.json(quizzes);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Récupérer tous les quizz
-router.get('/api/quizzes', async (req, res) => {
+/**
+ * POST /api/quizzes
+ * Crée un quizz (auth requis)
+ * Body attendu: { title, description?, questions: [{ text, allowMultiple?, choices:[{text,isCorrect}] }] }
+ */
+router.post('/api/quizzes', authMiddleware, createQuiz);
+
+/**
+ * GET /api/quizzes/:id
+ * Récupère un quizz par ID
+ */
+router.get('/api/quizzes/:id', getQuizById);
+
+/**
+ * PUT /api/quizzes/:id
+ * Met à jour un quizz (auth requis; l’auteur ou un admin idéalement)
+ */
+router.put('/api/quizzes/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const quizzes = await Quiz.find().populate('user', 'name').sort({ createdAt: -1 });
-    res.json(quizzes);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur serveur' });
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) return res.status(404).json({ error: 'Quizz introuvable' });
+
+    // (Optionnel) Vérifier l’auteur: if (quiz.author.toString() !== (req as any).user._id) return res.status(403).json({error:'Interdit'});
+    const updatable = ['title', 'description', 'questions', 'published'] as const;
+    for (const k of updatable) {
+      if (k in req.body) (quiz as any)[k] = (req.body as any)[k];
+    }
+    await quiz.save();
+    res.json(quiz);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/quizzes/:id
+ * Supprime un quizz (auth requis; l’auteur ou un admin idéalement)
+ */
+router.delete('/api/quizzes/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) return res.status(404).json({ error: 'Quizz introuvable' });
+
+    // (Optionnel) Vérifier l’auteur: if (quiz.author.toString() !== (req as any).user._id) return res.status(403).json({error:'Interdit'});
+    await quiz.deleteOne();
+    res.json({ message: 'Quizz supprimé' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/quizzes/:id/submit
+ * Soumet les réponses et renvoie { score, total }
+ * Body attendu: { answers: (number | number[])[] }
+ */
+//router.post('/api/quizzes/:id/submit', authMiddleware, submitQuiz);  //Avec authentification
+router.post('/api/quizzes/:id/submit', submitQuiz); //Sans authentification
+
+/**
+ * GET /quizzes/:id
+ * Route de page (EJS) pour jouer le quizz
+ * Rendra la vue 'quiz.ejs' avec { quiz }
+ */
+router.get('/quizzes/:id', async (req: Request, res: Response) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id).populate('author', 'name');
+    if (!quiz) return res.status(404).send('Quizz introuvable');
+    res.render('quiz', { quiz });
+  } catch (error) {
+    res.status(500).send('Erreur serveur');
   }
 });
 

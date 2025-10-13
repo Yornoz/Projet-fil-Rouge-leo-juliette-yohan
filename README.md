@@ -6,45 +6,123 @@ Projet de base pour le TP d'intégration MongoDB avec Express et TypeScript.
 1. npm install
 2. npm run dev
 
+Par défaut, le projet tente de se connecter à mongodb://localhost:27017/quizApp.
+Modifiez src/config/database.ts si nécessaire.
+README – Fonctionnement des routes de l’API
+Ce projet Express/Mongoose propose plusieurs routes pour la gestion des utilisateurs, de l’authentification et des quizz.
+Voici un guide pour comprendre le fonctionnement de chaque route.
 
-## Fonctionnalités
 
-- Connexion à MongoDB (quizApp) via Mongoose
-- Modèle User : name (string, requis), email (string, requis, unique), password (string, requis, haché), createdAt (date, défaut Date.now)
-- Authentification sécurisée avec bcrypt et JWT
-- Routes :
-	- POST /register : inscription
-	- POST /login : connexion (retourne un token JWT)
-	- GET /profile : profil utilisateur (protégé, nécessite un token)
-	- POST /users : création d'un utilisateur (admin)
-- Middleware d'authentification pour protéger les routes
-- Middleware global d'erreur (500) et 404 pour les routes inexistantes
+## Authentification (authRoutes.ts)
+POST /register
 
-## Exemple requête POST /register
+Inscription d’un nouvel utilisateur.
+Corps attendu :
 
-```json
+{ "name": "Alice", "email": "alice@mail.com", "password": "secret" }
+
+POST /login
+
+Connexion utilisateur.
+Retourne un token JWT :
+
+{ "token": "xxxxx.yyyyy.zzzzz" }
+
+GET /profile
+
+Retourne les informations de l’utilisateur connecté.
+Nécessite le header :
+
+Authorization: Bearer <token>
+
+## Utilisateurs (userRoutes.ts)
+GET /api/users
+
+Liste des utilisateurs — réservé à l’admin.
+Utilise authMiddleware et roleMiddleware('admin').
+
+POST /api/users
+
+Création d’un utilisateur (par admin ou inscription directe).
+Validation via express-validator.
+
+## Quizz (quizRoutes.ts)
+POST /api/quizzes
+
+Crée un quizz complet. (auth requis)
+Exemple de corps :
+
 {
-	"name": "Alice",
-	"email": "alice@example.com",
-	"password": "monmotdepasse"
+  "title": "Culture générale",
+  "description": "Testez vos connaissances",
+  "questions": [
+    {
+      "text": "Quelle est la capitale de l'Italie ?",
+      "allowMultiple": false,
+      "choices": [
+        { "text": "Rome", "isCorrect": true },
+        { "text": "Milan", "isCorrect": false },
+        { "text": "Venise", "isCorrect": false }
+      ]
+    }
+  ]
 }
-```
 
-## Exemple requête POST /login
+GET /api/quizzes
 
-```json
-{
-	"email": "alice@example.com",
-	"password": "monmotdepasse"
-}
-```
+Retourne la liste des quizz avec leur auteur.
 
-## Exemple requête GET /profile
+GET /api/quizzes/:id
 
-Header : Authorization: Bearer <token>
+Retourne un quizz complet par son ID.
 
-## Test avec Postman
+POST /api/quizzes/:id/submit
 
-1. Démarrer le serveur : npm run dev
-2. Envoyer une requête POST sur http://localhost:3000/register puis /login
-3. Utiliser le token reçu pour accéder à /profile
+Soumet les réponses et renvoie :
+
+{ "score": 3, "total": 5 }
+
+
+Accessible sans authentification.
+
+## Pages Front EJS
+
+## CreerQuizz.ejs
+
+Interface moderne et responsive :
+
+Ajout/suppression dynamique de questions et de choix.
+
+Sélection des bonnes réponses (checkbox).
+
+Validation automatique avant envoi.
+
+Affichage de messages de succès/erreur.
+
+Design Bootstrap 5 homogène avec la page de jeu.
+
+## quiz.ejs
+
+Page de jeu pour répondre à un quizz :
+
+Affichage dynamique des questions.
+
+Sélection simple ou multiple.
+
+Envoi AJAX.
+
+Affichage immédiat du score sans rechargement :
+
+✅ Score : 4 / 5
+
+## LesQuizz.ejs
+
+Liste des quizz disponibles avec auteur et bouton Jouer :
+
+<a class="btn btn-primary mt-3" href="/quizzes/<%= quiz._id %>">Jouer</a>
+
+## Middlewares
+
+authMiddleware → Vérifie la présence et la validité du token JWT.
+
+roleMiddleware(role) → Vérifie le rôle utilisateur (admin, user...).

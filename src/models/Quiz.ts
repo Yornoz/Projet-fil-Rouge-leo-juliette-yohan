@@ -1,30 +1,61 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IUser } from './User';
+import { Schema, model, Types } from 'mongoose';
 
-export interface IOption {
+export interface Choice {
   text: string;
-  votes: number;
+  isCorrect: boolean;
 }
 
-export interface IQuiz extends Document {
+export interface Question {
+  text: string;
+  choices: Choice[]; // >= 2, au moins une correcte
+  allowMultiple?: boolean; // optionnel si vous voulez du multi-réponses
+}
+
+export interface Quiz {
   title: string;
-  description: string;
-  user: IUser['_id'];
-  options: IOption[];
-  createdAt: Date;
+  description?: string;
+  questions: Question[];
+  author: Types.ObjectId;
+  published?: boolean;
 }
 
-const optionSchema = new Schema<IOption>({
-  text: { type: String, required: true },
-  votes: { type: Number, default: 0 }
+const ChoiceSchema = new Schema<Choice>({
+  text: { type: String, required: true, trim: true },
+  isCorrect: { type: Boolean, required: true },
 });
 
-const quizSchema = new Schema<IQuiz>({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  options: { type: [optionSchema], required: true },
-  createdAt: { type: Date, default: Date.now }
+const QuestionSchema = new Schema<Question>({
+  text: { type: String, required: true, trim: true },
+  choices: {
+    type: [ChoiceSchema],
+    validate: [
+      (v: Choice[]) => v.length >= 2,
+      'Chaque question doit avoir au moins 2 choix.',
+    ],
+  },
+  allowMultiple: { type: Boolean, default: false },
 });
 
-export default mongoose.model<IQuiz>('Quiz', quizSchema);
+const QuizSchema = new Schema<Quiz>(
+  {
+    title: { type: String, required: true, trim: true },
+    description: { type: String },
+    questions: {
+      type: [QuestionSchema],
+      validate: [
+        (v: Question[]) => v.length >= 1,
+        'Le quizz doit contenir au moins 1 question.',
+      ],
+    },
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    published: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+// Guard: au moins une bonne réponse par question
+QuizSchema.path('questions').validate((questions: Question[]) => {
+  return questions.every(q => q.choices.some(c => c.isCorrect));
+}, 'Chaque question doit avoir au moins une réponse correcte.');
+
+export default model<Quiz>('Quiz', QuizSchema);
