@@ -1,15 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from './authMiddleware';
 
-// Vérifie que l'utilisateur a le rôle nécessaire
 export function requireRole(role: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user; // req.user est défini par authMiddleware
-    if (!user) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
       return res.status(401).json({ error: 'Non authentifié' });
     }
 
-    if (user.role !== role) {
-      return res.status(403).json({ error: 'Accès refusé' });
+    if (req.user.role !== role) {
+      return res.status(403).json({ error: 'Accès refusé : réservé aux administrateurs' });
     }
 
     next();

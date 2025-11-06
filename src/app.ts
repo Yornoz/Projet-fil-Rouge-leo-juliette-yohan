@@ -17,7 +17,7 @@ app.use(express.static(__dirname + '/public'));
 
 // Page d'accueil
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.render('index'); 
 });
 
 // Pages EJS pour inscription et connexion

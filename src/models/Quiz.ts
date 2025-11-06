@@ -8,7 +8,7 @@ export interface Choice {
 export interface Question {
   text: string;
   choices: Choice[]; // >= 2, au moins une correcte
-  allowMultiple?: boolean; // optionnel si vous voulez du multi-réponses
+  allowMultiple?: boolean; 
 }
 
 export interface Quiz {
@@ -53,7 +53,7 @@ const QuizSchema = new Schema<Quiz>(
   { timestamps: true }
 );
 
-// Guard: au moins une bonne réponse par question
+// au moins une bonne réponse par question
 QuizSchema.path('questions').validate((questions: Question[]) => {
   return questions.every(q => q.choices.some(c => c.isCorrect));
 }, 'Chaque question doit avoir au moins une réponse correcte.');
