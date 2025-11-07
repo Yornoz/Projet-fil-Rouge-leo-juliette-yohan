@@ -30,24 +30,24 @@ app.get('/users', (req, res) => {
 });
 
 // Page intermédiaire Mes Quizz accessible à tous
-app.get('/mesquizz', (req, res) => {
-  res.render('mesQuizz'); // Cette page contiendra les 2 boutons (Voir / Créer)
+app.get('/mesquiz', (req, res) => {
+  res.render('mesQuiz'); // Cette page contiendra les 2 boutons (Voir / Créer)
 });
 
 // Page pour voir tous les quizz
-app.get('/lesquizz', async (req, res) => {
+app.get('/lesquiz', async (req, res) => {
   try {
     const quizzes = await Quiz.find().populate('author', 'name').sort({ createdAt: -1 });
-    res.render('LesQuizz', { quizzes });
+    res.render('LesQuiz', { quizzes });
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur serveur');
   }
 });
 
-// Page pour créer un nouveau quizz
-app.get('/creerquizz', (req, res) => {
-  res.render('CreerQuizz'); // Formulaire pour créer un quizz
+// Page pour créer un nouveau quiz
+app.get('/creerquiz', (req, res) => {
+  res.render('CreerQuiz'); // Formulaire pour créer un quizz
 });
 
 // Routes API
