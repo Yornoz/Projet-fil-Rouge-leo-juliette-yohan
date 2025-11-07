@@ -28,7 +28,7 @@ export const createQuiz = async (req: Request, res: Response) => {
 export const getQuizById = async (req: Request, res: Response) => {
   try {
     const quiz = await Quiz.findById(req.params.id).populate('author', 'name');
-    if (!quiz) return res.status(404).json({ error: 'Quizz introuvable' });
+    if (!quiz) return res.status(404).json({ error: 'Quiz introuvable' });
     res.json(quiz);
   } catch (e:any) {
     res.status(500).json({ error: e.message });
@@ -38,7 +38,7 @@ export const getQuizById = async (req: Request, res: Response) => {
 export const submitQuiz = async (req: Request, res: Response) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ error: 'Quizz introuvable' });
+    if (!quiz) return res.status(404).json({ error: 'Quiz introuvable' });
 
     const { answers } = req.body;
     if (!Array.isArray(answers) || answers.length !== quiz.questions.length) {

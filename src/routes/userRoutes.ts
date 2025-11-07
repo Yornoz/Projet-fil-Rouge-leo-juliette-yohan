@@ -3,10 +3,11 @@ import { listUsers, createUser } from '../controllers/userController';
 import { body, validationResult } from 'express-validator';
 import { authMiddleware, AuthRequest } from '../middleware/authMiddleware';
 import { requireRole } from '../middleware/roleMiddleware';
+import User from '../models/User';
 
 const router = Router();
 
-// --- Route protégée admin ---
+// --- Route protégée admin pour lister tous les utilisateurs ---
 router.get('/api/users', authMiddleware, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -17,7 +18,7 @@ router.get('/api/users', authMiddleware, requireRole('admin'), async (req: AuthR
   }
 });
 
-// --- Route publique (inscription) ---
+// --- Route publique pour créer un nouvel utilisateur ---
 router.post(
   '/users',
   [
@@ -33,5 +34,19 @@ router.post(
   },
   createUser
 );
+
+// --- Route protégée admin pour supprimer un utilisateur ---
+router.delete('/api/users/:id', authMiddleware, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+    await user.deleteOne();
+    res.json({ message: 'Utilisateur supprimé' });
+  } catch (err: any) {
+    console.error('Erreur lors de la suppression de l’utilisateur:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;

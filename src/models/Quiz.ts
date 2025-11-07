@@ -44,7 +44,7 @@ const QuizSchema = new Schema<Quiz>(
       type: [QuestionSchema],
       validate: [
         (v: Question[]) => v.length >= 1,
-        'Le quizz doit contenir au moins 1 question.',
+        'Le quiz doit contenir au moins 1 question.',
       ],
     },
     author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
