@@ -52,10 +52,11 @@
           return;
         }
 
-        // Stocker le token en localStorage
+        // Stocker le token et le pseudo
         localStorage.setItem('token', data.token);
+        localStorage.setItem('name', data.name);
 
-        // Rediriger vers /users
+        // Rediriger vers l'accueil
         window.location.href = '/';
       } catch (err) {
         alert('Erreur serveur');

@@ -177,7 +177,6 @@
         return { text, allowMultiple, choices };
       });
 
-      // validations UI rapides
       if (!title) return showMsg('warning', 'Le titre est requis.');
       if (questions.length === 0) return showMsg('warning', 'Ajoutez au moins une question.');
       for (const [i, q] of questions.entries()) {

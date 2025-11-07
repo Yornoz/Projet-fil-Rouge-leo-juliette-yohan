@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 export const createQuiz = async (req: Request, res: Response) => {
   try {
-    const author = (req as any).user._id; // via authMiddleware
+    const author = (req as any).user._id;
     const { title, description, questions } = req.body;
 
     if (!title || !Array.isArray(questions) || questions.length === 0) {

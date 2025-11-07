@@ -4,7 +4,6 @@ import User from '../models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
-// ✅ Export de l'interface
 export interface AuthRequest extends Request {
   user?: any;
 }
