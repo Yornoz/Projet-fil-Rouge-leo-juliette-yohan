@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authMiddleware, optionalAuthMiddleware, isAdmin } from '../middleware/authMiddleware';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware';
 import Quiz from '../models/Quiz';
 import { createQuiz, getQuizById, submitQuiz } from '../controllers/quizController';
 
@@ -89,7 +89,7 @@ router.delete('/api/quizzes/:id', authMiddleware, async (req: Request, res: Resp
    🔹 ROUTE ADMIN (gestion complète)
 ============================= */
 
-router.get('/api/admin/quizzes', authMiddleware, isAdmin, async (_req: Request, res: Response) => {
+router.get('/api/admin/quizzes', authMiddleware, async (_req: Request, res: Response) => {
   try {
     const quizzes = await Quiz.find()
       .populate('author', 'name')

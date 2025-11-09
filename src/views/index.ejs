@@ -36,16 +36,16 @@
           <li class="nav-item"><a class="nav-link" href="/">Accueil</a></li>
           <li class="nav-item"><a class="nav-link" href="/register">S'inscrire</a></li>
           <li class="nav-item"><a class="nav-link" href="/login">Connexion</a></li>
-          <li class="nav-item" id="userItem" style="display:none;">
             <span class="nav-link text-warning" id="pseudo"></span>
           </li>
+          <li class="nav-item" id="userItem" style="display:none;">
           <li class="nav-item ms-2" id="mesQuizzBtn" style="display:none;">
             <a class="btn btn-start fw-bold" href="/mesquiz">Mes quiz</a>
           </li>
 
           <!-- Bouton Panel Admin uniquement si admin -->
           <li class="nav-item ms-2" id="adminBtn" style="display:none;">
-            <a class="btn btn-warning fw-bold" href="/admin">Panel Admin</a>
+            <a class="btn btn-warning fw-bold" href="/users">Panel Admin</a>
           </li>
         </ul>
       </div>
@@ -140,12 +140,15 @@
     const token = localStorage.getItem('token');
     if(token){
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const pseudo = payload.name || localStorage.getItem('name') || 'Utilisateur';
+      let pseudo = payload?.name || 'Utilisateur';
+      if (!localStorage.getItem('name')){
+        pseudo = localStorage.getItem('name');
+      }
       document.getElementById('pseudo').textContent = pseudo;
       document.getElementById('userItem').style.display = 'block';
       document.getElementById('mesQuizzBtn').style.display = 'block';
       document.getElementById('heroBtn').href = '/mesquiz';
-      if(payload.role === 'admin'){
+      if(payload?.role === 'admin'){
         document.getElementById('adminBtn').style.display = 'block';
       }
     }

@@ -18,7 +18,7 @@ export async function createUser(req: Request, res: Response) {
 
     // Créer l'utilisateur (le hash est fait par le middleware)
     const user = await User.create({ name, email, password });
-    res.status(201).json({ message: 'Utilisateur créé', user: { _id: user._id, name: user.name, email: user.email } });
+    res.status(201).json({ message: 'Utilisateur créé '+password, user: { _id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }

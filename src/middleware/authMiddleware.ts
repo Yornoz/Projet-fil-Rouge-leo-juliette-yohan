@@ -8,37 +8,43 @@ export interface AuthRequest extends Request {
   user?: any;
 }
 
-// Middleware pour routes réservées à l'admin
+// ✅ Middleware pour vérifier si l’utilisateur est admin
 export function isAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ error: 'Accès refusé : réservé à l’administrateur.' });
+    return next();
   }
+  return res.status(403).json({ error: 'Accès refusé : réservé à l’administrateur.' });
 }
 
-// Middleware pour routes protégées
+// ✅ Middleware pour routes protégées (requiert token)
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Non autorisé' });
+    const token =
+      req.cookies?.token ||
+      (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
+
+    if (!token) return res.status(401).json({ error: 'Non autorisé : aucun token' });
 
     const decoded: any = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password'); // ✅ corrigé ici
+    const user = await User.findById(decoded.id).select('-password');
+
     if (!user) return res.status(401).json({ error: 'Utilisateur non trouvé' });
 
     req.user = user;
     res.locals.user = user;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Token invalide' });
+    return res.status(401).json({ error: 'Token invalide ou expiré' });
   }
 }
 
-// Middleware optionnel pour pages publiques
+// ✅ Middleware optionnel pour pages publiques (user facultatif)
 export async function optionalAuthMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+    const token =
+      req.cookies?.token ||
+      (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
+
     if (!token) {
       req.user = null;
       res.locals.user = null;
@@ -46,7 +52,8 @@ export async function optionalAuthMiddleware(req: AuthRequest, res: Response, ne
     }
 
     const decoded: any = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password'); // ✅ corrigé ici aussi
+    const user = await User.findById(decoded.id).select('-password');
+
     req.user = user || null;
     res.locals.user = user || null;
     next();

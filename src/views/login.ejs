@@ -46,7 +46,6 @@
         });
 
         const data = await res.json();
-
         if (!res.ok) {
           alert(data.error || 'Erreur lors de la connexion');
           return;
@@ -54,7 +53,7 @@
 
         // Stocker le token et le pseudo
         localStorage.setItem('token', data.token);
-        localStorage.setItem('name', data.name);
+        localStorage.setItem('name', data.user?.name);
 
         // Rediriger vers l'accueil
         window.location.href = '/';
