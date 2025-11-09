@@ -1,128 +1,100 @@
-# TP Mongoose CRUD
+🧠 QuISEN — Projet Étudiant (Juliette, Yohan, Léo) 📘 Description du projet
 
-Projet de base pour le TP d'intégration MongoDB avec Express et TypeScript.
+Ce projeet est une application web de quiz interactif développée en TypeScript avec le framework Express.js. Elle permet à des utilisateurs de :
 
-## Installation
-1. npm install
-2. npm run dev
+créer un compte et se connecter,
 
-Par défaut, le projet tente de se connecter à mongodb://localhost:27017/quizApp.
-Modifiez src/config/database.ts si nécessaire.
-README – Fonctionnement des routes de l’API
-Ce projet Express/Mongoose propose plusieurs routes pour la gestion des utilisateurs, de l’authentification et des quizz.
-Voici un guide pour comprendre le fonctionnement de chaque route.
+consulter les quizss disponibles,
 
+répondre à des quizs et consulter leur score,
 
-## Authentification (authRoutes.ts)
-POST /register
+créer leurs propres quizs,
 
-Inscription d’un nouvel utilisateur.
-Corps attendu :
+gérer leurs quiz via une interface utilisateur simple.
 
-{ "name": "Alice", "email": "alice@mail.com", "password": "secret" }
+Ce projet a été réalisée dans le cadre d’un projet étudiiant en 2ᵉ année, et vise à illustrer les notions de :
 
-POST /login
+architecture MVC (Modèle / Vue / Contrôleur),
 
-Connexion utilisateur.
-Retourne un token JWT :
+gestion d’authentification et autorisation,
 
-{ "token": "xxxxx.yyyyy.zzzzz" }
+utilisation d’une base de données,
 
-GET /profile
+séparation claire des responsabilités dans un serveur Express moderne.
 
-Retourne les informations de l’utilisateur connecté.
-Nécessite le header :
+🏗️ Architecture du projet src/ │ ├── app.ts # Configuration principale de l’application Express ├── server.ts # Point d’entrée du serveur │ ├── config/ │ └── database.ts # Connexion à la base de données │ ├── controllers/ # Logique métier de l’application │ ├── authController.ts # Inscription, connexion, déconnexion │ ├── quizController.ts # Gestion des quiz (CRUD) │ └── userController.ts # Gestion des utilisateurs │ ├── middleware/ # Middleware Express pour la sécurité │ ├── authMiddleware.ts # Vérifie la présence d’un token ou d’une session │ └── roleMiddleware.ts # Vérifie le rôle de l’utilisateur (admin, user, etc.) │ ├── models/ # Modèles de données (ORM ou schémas) │ ├── Quiz.ts # Schéma ou classe représentant un Quiz │ └── User.ts # Schéma ou classe représentant un Utilisateur │ ├── public/ # Fichiers statiques accessibles par le client │ ├── index.html │ ├── style.css │ └── Photos/ │ ├── Quizz1.jpg │ ├── Quizz2.png │ └── Quizz3.jpg │ ├── routes/ # Définition des routes Express │ ├── authRoutes.ts # Routes d’authentification │ ├── quizRoutes.ts # Routes pour les quiz │ ├── userRoutes.ts # Routes utilisateurs │ └── pages.ts # Routes pour le rendu des pages EJS │ └── views/ # Templates EJS pour le rendu côté serveur ├── login.ejs ├── register.ejs ├── quiz.ejs ├── CreerQuizz.ejs ├── LesQuizz.ejs ├── mesQuizz.ejs └── users.ejs
 
-Authorization: Bearer <token>
+⚙️ Fonctionnement général 🔸 Lancement du serveur
 
-## Utilisateurs (userRoutes.ts)
-GET /api/users
+Le point d’entrée server.ts démarre le serveur Express.
 
-Liste des utilisateurs — réservé à l’admin.
-Utilise authMiddleware et roleMiddleware('admin').
+app.ts configure :
 
-POST /api/users
+les middlewares généraux (body-parser, cookies, sessions…),
 
-Création d’un utilisateur (par admin ou inscription directe).
-Validation via express-validator.
+la connexion à la base de données (via config/database.ts),
 
-## Quizz (quizRoutes.ts)
-POST /api/quizzes
+les routes (routes/*.ts),
 
-Crée un quizz complet. (auth requis)
-Exemple de corps :
+et le moteur de rendu EJS.
 
-{
-  "title": "Culture générale",
-  "description": "Testez vos connaissances",
-  "questions": [
-    {
-      "text": "Quelle est la capitale de l'Italie ?",
-      "allowMultiple": false,
-      "choices": [
-        { "text": "Rome", "isCorrect": true },
-        { "text": "Milan", "isCorrect": false },
-        { "text": "Venise", "isCorrect": false }
-      ]
-    }
-  ]
-}
+Une fois lancé, le serveur est accessible sur :
 
-GET /api/quizzes
+http://localhost:3000
 
-Retourne la liste des quizz avec leur auteur.
+🌐 Système de routes 🔐 Routes d’authentification (routes/authRoutes.ts) Méthode Description GET /login Affiche la page de connexion POST /login Authentifie un utilisateur GET/register Affiche la page d’inscription POST/register Crée un nouvel utilisateur
 
-GET /api/quizzes/:id
+🧩 Routes Quiz (routes/quizRoutes.ts) Méthode Description GET/quiz Liste les quiz disponibles GET/quiz/:id Joue un quiz spécifique POST/quiz Crée un nouveau quiz POST/quiz/:id/delete Supprime un quiz POST/quiz/:id/update Met à jour un quiz
 
-Retourne un quizz complet par son ID.
+👤 Routes Utilisateurs (routes/userRoutes.ts) Méthode Description GET /users Liste des utilisateurs (admin) GET /users/:id Affiche les infos d’un utilisateur POST/users/:id/delete Supprime un utilisateur
 
-POST /api/quizzes/:id/submit
+🖼️ Pages (routes/pages.ts)
 
-Soumet les réponses et renvoie :
+Ce fichier gère les rendus EJS :
 
-{ "score": 3, "total": 5 }
+/ redirige vers /login ou /quiz
 
+/mesQuizz → affiche les quiz créés par l’utilisateur connecté
 
-Accessible sans authentification.
+/CreerQuizz → page de création de quiz
 
-## Pages Front EJS
+/LesQuizz → liste générale des quiz disponibles
 
-## CreerQuizz.ejs
+🔒 Gestion de la sécurité
 
-Interface moderne et responsive :
+Le projet utilise deux couches de sécurité principales :
 
-Ajout/suppression dynamique de questions et de choix.
+authMiddleware.ts
+Vérifie si l’utilisateur est connecté (présence d’un token).
 
-Sélection des bonnes réponses (checkbox).
+Redirige vers /login s’il ne l’est pas.
 
-Validation automatique avant envoi.
+Peut décoder un JWT ou utiliser une session Express, selon la configuration.
 
-Affichage de messages de succès/erreur.
+roleMiddleware.ts
+Vérifie si l’utilisateur possède un rôle spécifique (par ex. admin).
 
-Design Bootstrap 5 homogène avec la page de jeu.
+Bloque l’accès à certaines routes si le rôle est insuffisant.
 
-## quiz.ejs
+Gestion des mots de passe
+Les mots de passe sont hachés avant stockage (via bcrypt).
 
-Page de jeu pour répondre à un quizz :
+En cas de connexion, le mot de passe fourni est comparé avec le hash en base.
 
-Affichage dynamique des questions.
+🧩 Modèles de données 🧍‍♂️ User (models/User.ts)
 
-Sélection simple ou multiple.
+Contient :
 
-Envoi AJAX.
+{ id: number, username: string, email: string, password: string, // hashé role: string // 'user' | 'admin' }
 
-Affichage immédiat du score sans rechargement :
+🧠 Quiz (models/Quiz.ts)
 
-✅ Score : 4 / 5
+Représente un quiz créé par un utilisateur :
 
-## LesQuizz.ejs
+{ id: number, title: string, questions: createdBy: number // id de l’utilisateur }
 
-Liste des quizz disponibles avec auteur et bouton Jouer :
+🧰 Installation et exécution 1️ Installer les dépendances : npm install
 
-<a class="btn btn-primary mt-3" href="/quizzes/<%= quiz._id %>">Jouer</a>
+2 Lancer le serveur : npm run dev
 
-## Middlewares
-
-authMiddleware → Vérifie la présence et la validité du token JWT.
-
-roleMiddleware(role) → Vérifie le rôle utilisateur (admin, user...).
+Merci en espérant que ce READ ME vous aura aidé.
