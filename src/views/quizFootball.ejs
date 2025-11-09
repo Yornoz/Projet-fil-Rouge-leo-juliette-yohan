@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Football - QuIsen</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <div class="container py-5">
+    <h2 class="mb-3">Quiz Football</h2>
+    <p class="text-muted mb-4">Teste tes connaissances sur le foot ⚽</p>
+
+    <form id="quizForm">
+      <div id="questionsContainer"></div>
+      <button type="submit" class="btn btn-primary mt-3">Soumettre</button>
+      <button type="button" class="btn btn-secondary mt-3" id="restartBtn" style="display:none;">Rejouer</button>
+      <a href="/" class="btn btn-outline-dark mt-3 ms-2">⬅ Retour à l'accueil</a>
+    </form>
+
+    <div id="scoreBox" class="alert alert-info mt-4 d-none"></div>
+  </div>
+
+  <script>
+    const questions = [
+      { text: "Qui a remporté la Coupe du Monde 2018 ?", choices: ["Brésil", "France", "Croatie"], correct: [1] },
+      { text: "Quel club a remporté la Ligue des Champions 2023 ?", choices: ["Real Madrid", "Manchester City", "Bayern Munich"], correct: [1] },
+      { text: "Quel joueur a gagné le plus de Ballons d’Or ?", choices: ["Cristiano Ronaldo", "Lionel Messi", "Pelé"], correct: [1] },
+      { text: "Combien de joueurs y a-t-il sur le terrain par équipe ?", choices: ["10", "11", "12"], correct: [1] },
+      { text: "Quel pays a organisé la Coupe du Monde 2022 ?", choices: ["Qatar", "Russie", "États-Unis"], correct: [0] }
+    ];
+
+    const container = document.getElementById('questionsContainer');
+    const form = document.getElementById('quizForm');
+    const scoreBox = document.getElementById('scoreBox');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function loadQuiz() {
+      container.innerHTML = '';
+      scoreBox.classList.add('d-none');
+      restartBtn.style.display = 'none';
+
+      questions.forEach((q, qi) => {
+        const card = document.createElement('div');
+        card.className = 'card p-3 mb-3';
+        card.innerHTML = `
+          <strong>Q${qi + 1}. ${q.text}</strong>
+          <div class="mt-2">
+            ${q.choices.map((c, ci) => `
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="q-${qi}" value="${ci}">
+                <label class="form-check-label">${c}</label>
+              </div>
+            `).join('')}
+            <div class="mt-2 text-danger fw-bold d-none" id="correct-${qi}"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      let score = 0;
+
+      questions.forEach((q, qi) => {
+        const selected = document.querySelector(`input[name="q-${qi}"]:checked`);
+        const correctDiv = document.getElementById(`correct-${qi}`);
+        const correctAnswers = q.correct.map(i => q.choices[i]).join(', ');
+
+        if (selected) {
+          const answer = parseInt(selected.value);
+          if (q.correct.includes(answer)) {
+            selected.parentElement.innerHTML += " ✅";
+            score++;
+          } else {
+            selected.parentElement.innerHTML += " ❌";
+            correctDiv.textContent = "Bonne réponse : " + correctAnswers;
+            correctDiv.classList.remove('d-none');
+          }
+        } else {
+          correctDiv.textContent = "Bonne réponse : " + correctAnswers;
+          correctDiv.classList.remove('d-none');
+        }
+      });
+
+      scoreBox.textContent = `✅ Score : ${score} / ${questions.length}`;
+      scoreBox.classList.remove('d-none');
+      restartBtn.style.display = 'inline-block';
+    });
+
+    restartBtn.addEventListener('click', loadQuiz);
+
+    loadQuiz();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

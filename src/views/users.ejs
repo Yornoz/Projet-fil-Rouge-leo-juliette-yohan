@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utilisateurs & Quizz - QuizApp</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; padding-top: 70px; }
+    .table-users, .table-quizzes { margin-top: 40px; }
+    .btn-update { margin-right: 5px; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/">Qu<span class="text-danger">Isen</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item"><a class="nav-link" href="/">Accueil</a></li>
+          <li class="nav-item" id="userItem" style="display:none;">
+            <span class="nav-link text-warning" id="pseudo"></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Utilisateurs -->
+    <h2 class="mt-4 mb-3 text-center">Liste des utilisateurs</h2>
+    <table class="table table-striped table-users" id="usersTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Quizz -->
+    <h2 class="mt-5 mb-3 text-center">Liste des quizz</h2>
+    <table class="table table-striped table-quizzes" id="quizzesTable">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Auteur</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (async () => {
+      const token = localStorage.getItem('token');
+      if(!token){
+        alert('Connectez-vous pour accéder à cette page.');
+        window.location.href = '/login';
+        return;
+      }
+
+      // Affichage pseudo
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const pseudo = payload.name || 'Utilisateur';
+        document.getElementById('pseudo').textContent = pseudo;
+        document.getElementById('userItem').style.display = 'block';
+      } catch { console.warn('Impossible de lire le token'); }
+
+      // --- Utilisateurs ---
+      try {
+        const resUsers = await fetch('/api/users', {
+          headers: { 'Authorization': 'Bearer ' + token, 'Cache-Control': 'no-cache' }
+        });
+        if(!resUsers.ok) throw new Error('Erreur lors du chargement des utilisateurs');
+
+        const users = await resUsers.json();
+        const tbodyUsers = document.querySelector('#usersTable tbody');
+        tbodyUsers.innerHTML = '';
+        users.forEach(user => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${user._id}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteUser('${user._id}')">Supprimer</button>
+            </td>
+          `;
+          tbodyUsers.appendChild(tr);
+        });
+      } catch(err) { console.error(err); alert(err.message); }
+
+      // --- Quizz ---
+      try {
+        const resQuizzes = await fetch('/api/quizzes', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if(!resQuizzes.ok) throw new Error('Erreur lors du chargement des quizz');
+
+        const quizzes = await resQuizzes.json();
+        const tbodyQuizzes = document.querySelector('#quizzesTable tbody');
+        tbodyQuizzes.innerHTML = '';
+        quizzes.forEach(quiz => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${quiz.title}</td>
+            <td>${quiz.author?.name}</td>
+            <td>
+              <button class="btn btn-sm btn-primary btn-update" onclick="updateQuiz('${quiz._id}')">Modifier</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz._id}')">Supprimer</button>
+            </td>
+          `;
+          tbodyQuizzes.appendChild(tr);
+        });
+      } catch(err) { console.error(err); alert(err.message); }
+
+      // --- Fonctions ---
+      window.deleteUser = async function(id){
+        if(!confirm('Voulez-vous vraiment supprimer cet utilisateur ?')) return;
+        try {
+          const res = await fetch('/api/users/' + id, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if(res.ok) location.reload();
+          else {
+            const data = await res.json();
+            alert(data.error || 'Erreur lors de la suppression');
+          }
+        } catch(err) { console.error(err); alert('Erreur lors de la suppression'); }
+      };
+
+      window.deleteQuiz = async function(id){
+        if(!confirm('Voulez-vous vraiment supprimer ce quizz ?')) return;
+        try {
+          const res = await fetch('/api/quizzes/' + id, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if(res.ok) location.reload();
+          else {
+            const data = await res.json();
+            alert(data.error || 'Erreur lors de la suppression');
+          }
+        } catch(err) { console.error(err); alert('Erreur lors de la suppression'); }
+      };
+
+      window.updateQuiz = async function(id){
+        const title = prompt('Nouveau titre :');
+        if(!title) return;
+        try {
+          const res = await fetch('/api/quizzes/' + id, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ title })
+          });
+          if(res.ok) location.reload();
+          else {
+            const data = await res.json();
+            alert(data.error || 'Erreur lors de la modification');
+          }
+        } catch(err) { console.error(err); alert('Erreur lors de la modification'); }
+      };
+    })();
+  </script>
+</body>
+</html>
