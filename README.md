@@ -107,3 +107,5 @@ Quizs à tester déjà crée: Culture Générale et Foot (malhueresement ces deu
 
 
 Merci en espérant que ce READ ME vous aura aidé.
+
+PS: Comme aucuns de nous 3 n'avais déjà utilisé Git et GitHub, on a fait la majorité de nos push sur la branche Léo, donc c'est surrement là bas qu'il sera plus interessant pour vous de voir la progression du projet au fil du temps.
