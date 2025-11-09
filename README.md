@@ -97,4 +97,11 @@ Représente un quiz créé par un utilisateur :
 
 2 Lancer le serveur : npm run dev
 
+
+Finalement, les mots de passes pour tester les comptes en tant que admin et users: 
+Admin - admin@gmail.com - MDP= 123456 (visible en code dur sur app.ts ligne 15).
+A vous de tester de créer un utilisateur classique pour tester la fonction d'incscription et de connexion, ainsi que rôle.
+Quizs à tester déjà crée: Culture Générale et Foot
+
+
 Merci en espérant que ce READ ME vous aura aidé.
