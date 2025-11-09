@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Culture Générale - QuIsen</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <div class="container py-5">
+    <h2 class="mb-3">Culture Générale</h2>
+    <p class="text-muted mb-4">Teste ta culture générale avec ces 5 questions !</p>
+
+    <form id="quizForm">
+      <div id="questionsContainer"></div>
+      <button type="submit" class="btn btn-primary mt-3">Soumettre</button>
+      <button type="button" class="btn btn-secondary mt-3" id="restartBtn" style="display:none;">Rejouer</button>
+      <a href="/" class="btn btn-outline-dark mt-3 ms-2">⬅ Retour à l'accueil</a>
+    </form>
+
+    <div id="scoreBox" class="alert alert-info mt-4 d-none"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "Quelle est la capitale de la France ?",
+        choices: ["Paris", "Lyon", "Marseille"],
+        correct: [0],
+      },
+      {
+        text: "Quel océan borde la côte ouest de l’Afrique ?",
+        choices: ["Atlantique", "Pacifique", "Indien"],
+        correct: [0],
+      },
+      {
+        text: "Combien de continents y a-t-il sur Terre ?",
+        choices: ["5", "6", "7"],
+        correct: [2],
+      },
+      {
+        text: "Quel est l’élément chimique du symbole O ?",
+        choices: ["Or", "Oxygène", "Osmium"],
+        correct: [1],
+      },
+      {
+        text: "Qui a peint la Joconde ?",
+        choices: ["Michel-Ange", "Raphaël", "Léonard de Vinci"],
+        correct: [2],
+      }
+    ];
+
+    const container = document.getElementById('questionsContainer');
+    const form = document.getElementById('quizForm');
+    const scoreBox = document.getElementById('scoreBox');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function loadQuiz() {
+      container.innerHTML = '';
+      scoreBox.classList.add('d-none');
+      restartBtn.style.display = 'none';
+
+      questions.forEach((q, qi) => {
+        const card = document.createElement('div');
+        card.className = 'card p-3 mb-3';
+        card.innerHTML = `
+          <strong>Q${qi + 1}. ${q.text}</strong>
+          <div class="mt-2">
+            ${q.choices.map((c, ci) => `
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="q-${qi}" value="${ci}">
+                <label class="form-check-label">${c}</label>
+              </div>
+            `).join('')}
+            <div class="mt-2 text-danger fw-bold d-none" id="correct-${qi}"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      let score = 0;
+
+      questions.forEach((q, qi) => {
+        const selected = document.querySelector(`input[name="q-${qi}"]:checked`);
+        const correctDiv = document.getElementById(`correct-${qi}`);
+        const correctAnswers = q.correct.map(i => q.choices[i]).join(', ');
+
+        if (selected) {
+          const answer = parseInt(selected.value);
+          if (q.correct.includes(answer)) {
+            selected.parentElement.innerHTML += " ✅";
+            score++;
+          } else {
+            selected.parentElement.innerHTML += " ❌";
+            correctDiv.textContent = "Bonne réponse : " + correctAnswers;
+            correctDiv.classList.remove('d-none');
+          }
+        } else {
+          correctDiv.textContent = "Bonne réponse : " + correctAnswers;
+          correctDiv.classList.remove('d-none');
+        }
+      });
+
+      scoreBox.textContent = `✅ Score : ${score} / ${questions.length}`;
+      scoreBox.classList.remove('d-none');
+      restartBtn.style.display = 'inline-block';
+    });
+
+    restartBtn.addEventListener('click', loadQuiz);
+
+    loadQuiz();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

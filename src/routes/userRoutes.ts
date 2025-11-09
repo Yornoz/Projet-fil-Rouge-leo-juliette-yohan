@@ -1,33 +1,24 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { listUsers, createUser } from '../controllers/userController';
 import { body, validationResult } from 'express-validator';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authMiddleware, AuthRequest } from '../middleware/authMiddleware';
+import { requireRole } from '../middleware/roleMiddleware';
+import User from '../models/User';
 
 const router = Router();
 
-// Interface locale pour TypeScript pour accéder à req.user
-interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-}
-
-router.get('/api/users', authMiddleware, async (req: AuthRequest, res: Response) => {
+// --- Route protégée admin pour lister tous les utilisateurs ---
+router.get('/api/users', authMiddleware, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Accès refusé' });
-    }
+    res.set('Cache-Control', 'no-store');
     await listUsers(req, res);
   } catch (err) {
+    console.error('Erreur dans /api/users:', err);
     res.status(500).json({ error: (err as Error).message });
   }
 });
 
-
-// Route POST /users pour créer un utilisateur (inscription ou par admin)
+// --- Route publique pour créer un nouvel utilisateur ---
 router.post(
   '/users',
   [
@@ -39,9 +30,23 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    next(); // correction : TS sait maintenant que next est de type NextFunction
+    next();
   },
   createUser
 );
+
+// --- Route protégée admin pour supprimer un utilisateur ---
+router.delete('/api/users/:id', authMiddleware, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+    await user.deleteOne();
+    res.json({ message: 'Utilisateur supprimé' });
+  } catch (err: any) {
+    console.error('Erreur lors de la suppression de l’utilisateur:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;

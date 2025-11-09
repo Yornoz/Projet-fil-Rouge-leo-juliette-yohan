@@ -3,57 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Utilisateurs - QuizApp</title>
+  <title>Panneau Admin - QuizApp</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background: #f8f9fa; }
-    .table-users { margin-top: 40px; }
+    body { background: #f8f9fa; padding-top: 70px; }
+    .table-section { margin-top: 50px; }
   </style>
 </head>
 <body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/">Qu<span class="text-danger">Isen</span></a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="/logout" onclick="logout()">Déconnexion</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
   <div class="container">
-    <h2 class="mt-5 mb-4 text-center">Liste des utilisateurs</h2>
-    <table class="table table-striped table-users" id="usersTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nom</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Les utilisateurs seront insérés ici via JS -->
-      </tbody>
-    </table>
-    <a href="/" class="btn btn-secondary">Retour accueil</a>
+    <h1 class="text-center mt-4">👑 Panneau d’administration</h1>
+
+    <section class="table-section">
+      <h3>Utilisateurs</h3>
+      <table class="table table-striped" id="usersTable">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Rôle</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="table-section">
+      <h3>Quizz</h3>
+      <table class="table table-striped" id="quizzesTable">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Auteur</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
   </div>
 
   <script>
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Connectez-vous pour accéder à cette page.');
+      alert("Connectez-vous pour accéder à l'administration !");
       window.location.href = '/login';
     }
 
-    fetch('/api/users', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(res => {
-      if (!res.ok) throw new Error('Accès refusé ou token invalide');
-      return res.json();
-    })
-    .then(users => {
+    async function loadUsers() {
+      const res = await fetch('/api/users', { headers: { Authorization: 'Bearer ' + token } });
+      if (!res.ok) { alert('Erreur chargement utilisateurs'); return; }
+      const users = await res.json();
+
       const tbody = document.querySelector('#usersTable tbody');
-      users.forEach(user => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${user._id}</td><td>${user.name}</td><td>${user.email}</td>`;
-        tbody.appendChild(tr);
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${u.name}</td>
+            <td>${u.email}</td>
+            <td>${u.role}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteUser('${u._id}')">Supprimer</button>
+            </td>
+          </tr>`;
       });
-    })
-    .catch(err => {
-      alert(err.message);
-      window.location.href = '/login';
-    });
+    }
+
+    async function loadQuizzes() {
+      const res = await fetch('/api/quizzes', { headers: { Authorization: 'Bearer ' + token } });
+      if (!res.ok) { alert('Erreur chargement quiz'); return; }
+      const quizzes = await res.json();
+
+      const tbody = document.querySelector('#quizzesTable tbody');
+      tbody.innerHTML = '';
+      quizzes.forEach(q => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${q.title}</td>
+            <td>${q.author?.name || 'Inconnu'}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="updateQuiz('${q._id}')">Modifier</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${q._id}')">Supprimer</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Supprimer cet utilisateur ?')) return;
+      const res = await fetch('/api/users/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+      if (res.ok) loadUsers(); else alert('Erreur suppression utilisateur');
+    }
+
+    async function deleteQuiz(id) {
+      if (!confirm('Supprimer ce quiz ?')) return;
+      const res = await fetch('/api/quizzes/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+      if (res.ok) loadQuizzes(); else alert('Erreur suppression quiz');
+    }
+
+    async function updateQuiz(id) {
+      const title = prompt('Nouveau titre :');
+      if (!title) return;
+      const res = await fetch('/api/quizzes/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ title })
+      });
+      if (res.ok) loadQuizzes(); else alert('Erreur modification quiz');
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+    }
+
+    loadUsers();
+    loadQuizzes();
   </script>
 </body>
 </html>

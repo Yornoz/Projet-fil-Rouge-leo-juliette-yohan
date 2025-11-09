@@ -9,4 +9,3 @@ node_modules/
 
 # Dossier de build
 dist/
-echo "node_modules/" >> .gitignore

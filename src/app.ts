@@ -1,64 +1,129 @@
 import express from 'express';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
-import Quiz from './models/Quiz';
 import quizRoutes from './routes/quizRoutes';
+import Quiz from './models/Quiz';
+import User from './models/User';
+import { isAdmin, authMiddleware } from './middleware/authMiddleware';
+
 const app = express();
 app.use(express.json());
-app.use('/api', quizRoutes);
 
-// Configurer EJS
+// --- Config EJS ---
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-// Servir les fichiers statiques
+// --- Fichiers statiques ---
 app.use(express.static(__dirname + '/public'));
 
-// Page d'accueil
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
-});
+// --- Routes API ---
+app.use('/', authRoutes);
+app.use('/', userRoutes);
+app.use('/', quizRoutes);
 
-// Pages EJS pour inscription et connexion
+// --- Pages ---
+app.get('/', (req, res) => res.render('index'));
 app.get('/register', (req, res) => res.render('register'));
 app.get('/login', (req, res) => res.render('login'));
+app.get('/mesquiz', (req, res) => res.render('mesQuiz'));
+app.get('/creerquiz', (req, res) => res.render('CreerQuiz'));
 
-// Page utilisateurs (HTML stylé, les données viendront du fetch côté front)
-app.get('/users', (req, res) => {
-  res.render('users');
-});
-
-// Page intermédiaire Mes Quizz accessible à tous
-app.get('/mesquizz', (req, res) => {
-  res.render('mesQuizz'); // Cette page contiendra les 2 boutons (Voir / Créer)
-});
-
-// Page pour voir tous les quizz
-app.get('/lesquizz', async (req, res) => {
+// 🔹 Page Les Quiz
+app.get('/lesquiz', async (req, res) => {
   try {
-    const quizzes = await Quiz.find().populate('user', 'name').sort({ createdAt: -1 });
-    res.render('LesQuizz', { quizzes });
+    const quizzes = await Quiz.find().populate('author', 'name').sort({ createdAt: -1 });
+    res.render('LesQuiz', { quizzes });
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur serveur');
   }
 });
 
-// Page pour créer un nouveau quizz
-app.get('/creerquizz', (req, res) => {
-  res.render('CreerQuizz'); // Formulaire pour créer un quizz
+// 🔹 Panneau admin (users.ejs)
+app.get('/users', authMiddleware, isAdmin, (req, res) => {
+  res.render('users'); // C’est ton panneau admin maintenant
 });
 
-// Routes API
-app.use('/', authRoutes);  // POST /register, POST /login, GET /profile
-app.use('/', userRoutes);  // GET /users, POST /users
+// --- Insertion auto de quiz par défaut ---
+async function insertDefaultQuizzes() {
+  try {
+    const existing = await Quiz.countDocuments();
+    if (existing > 0) return;
 
-// Middleware 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route non trouvée' });
-});
+    // Vérifie admin
+    let admin = await User.findOne({ email: 'admin@example.com' });
+    if (!admin) {
+      admin = await User.create({
+        name: 'Admin',
+        email: 'admin@example.com',
+        password: '123456',
+        role: 'admin',
+      });
+      console.log('👤 Utilisateur admin créé');
+    }
 
-// Middleware global d'erreur
+    // Quiz de base
+    const defaultQuizzes = [
+      {
+        title: 'Culture Générale',
+        description: 'Un quiz pour tester ta culture générale',
+        author: admin._id,
+        questions: [
+          {
+            text: 'Quelle est la capitale du Canada ?',
+            choices: [
+              { text: 'Toronto', isCorrect: false },
+              { text: 'Ottawa', isCorrect: true },
+              { text: 'Vancouver', isCorrect: false },
+            ],
+          },
+          {
+            text: 'Combien de continents sur Terre ?',
+            choices: [
+              { text: '5', isCorrect: false },
+              { text: '6', isCorrect: false },
+              { text: '7', isCorrect: true },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Football',
+        description: 'Test tes connaissances sur le football ⚽',
+        author: admin._id,
+        questions: [
+          {
+            text: 'Quel club a remporté la Ligue des Champions 2023 ?',
+            choices: [
+              { text: 'Manchester City', isCorrect: true },
+              { text: 'Real Madrid', isCorrect: false },
+              { text: 'PSG', isCorrect: false },
+            ],
+          },
+          {
+            text: 'Quel joueur a remporté le Ballon d’Or 2023 ?',
+            choices: [
+              { text: 'Lionel Messi', isCorrect: true },
+              { text: 'Erling Haaland', isCorrect: false },
+              { text: 'Kylian Mbappé', isCorrect: false },
+            ],
+          },
+        ],
+      },
+    ];
+
+    await Quiz.insertMany(defaultQuizzes);
+    console.log('✅ Quiz par défaut ajoutés avec succès !');
+  } catch (err) {
+    console.error('❌ Erreur lors de l’insertion des quiz par défaut :', err);
+  }
+}
+insertDefaultQuizzes();
+
+// --- Middleware 404 ---
+app.use((req, res) => res.status(404).json({ error: 'Route non trouvée' }));
+
+// --- Middleware global d'erreur ---
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err);
   res.status(500).json({ error: 'Erreur serveur' });
