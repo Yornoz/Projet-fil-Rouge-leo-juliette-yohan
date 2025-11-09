@@ -97,6 +97,8 @@ Représente un quiz créé par un utilisateur :
 
 2 Lancer le serveur : npm run dev
 
+Ajout d'un pannel admin visible uniquement si l'utilisateur est un admin:
+Bouton pannel admin sur la page d'acueil qui mène via une route sécurisée, à une page qui permet aux admins de modifier/supprimer des quizs et supprimer des utilisateurs.
 
 Finalement, les mots de passes pour tester les comptes en tant que admin et users: 
 Admin - admin@gmail.com - MDP= 123456 (visible en code dur sur app.ts ligne 15).
