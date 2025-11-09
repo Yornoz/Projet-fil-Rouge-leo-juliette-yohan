@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
   user?: any;
 }
 
-// ✅ Middleware pour vérifier si l’utilisateur est admin
+// Middleware pour vérifier si l’utilisateur est admin
 export function isAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   if (req.user && req.user.role === 'admin') {
     return next();
@@ -16,7 +16,7 @@ export function isAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   return res.status(403).json({ error: 'Accès refusé : réservé à l’administrateur.' });
 }
 
-// ✅ Middleware pour routes protégées (requiert token)
+// Middleware pour routes protégées (requiert token)
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const token =
@@ -38,7 +38,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
   }
 }
 
-// ✅ Middleware optionnel pour pages publiques (user facultatif)
+// Middleware optionnel pour pages publiques (user facultatif)
 export async function optionalAuthMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const token =

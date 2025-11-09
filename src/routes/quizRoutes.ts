@@ -5,9 +5,6 @@ import { createQuiz, getQuizById, submitQuiz } from '../controllers/quizControll
 
 const router = Router();
 
-/* =============================
-   🔹 ROUTES PUBLIQUES
-============================= */
 
 // Liste de tous les quizz visibles publiquement
 router.get('/api/quizzes', optionalAuthMiddleware, async (_req: Request, res: Response) => {
@@ -19,7 +16,7 @@ router.get('/api/quizzes', optionalAuthMiddleware, async (_req: Request, res: Re
   }
 });
 
-// Pages de quizz "fixes"
+
 router.get('/quizzes/culture-generale', (_req: Request, res: Response) => {
   res.render('quizCultureGenerale');
 });
@@ -28,13 +25,11 @@ router.get('/quizzes/football', (_req: Request, res: Response) => {
   res.render('quizFootball');
 });
 
-// Détails d’un quizz (JSON)
+
 router.get('/api/quizzes/:id', optionalAuthMiddleware, getQuizById);
 
-// Soumission des réponses à un quizz
 router.post('/api/quizzes/:id/submit', submitQuiz);
 
-// Page de lecture du quizz (EJS)
 router.get('/quizzes/:id', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const quiz = await Quiz.findById(req.params.id).populate('author', 'name');
@@ -46,14 +41,11 @@ router.get('/quizzes/:id', optionalAuthMiddleware, async (req: Request, res: Res
 });
 
 
-/* =============================
-   🔹 ROUTES PROTÉGÉES (user connecté)
-============================= */
 
-// Création d’un nouveau quizz
+// Routes protégées
 router.post('/api/quizzes', authMiddleware, createQuiz);
 
-// Modification d’un quizz existant
+
 router.put('/api/quizzes/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
@@ -71,7 +63,7 @@ router.put('/api/quizzes/:id', authMiddleware, async (req: Request, res: Respons
   }
 });
 
-// Suppression d’un quizz
+
 router.delete('/api/quizzes/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
@@ -85,10 +77,7 @@ router.delete('/api/quizzes/:id', authMiddleware, async (req: Request, res: Resp
 });
 
 
-/* =============================
-   🔹 ROUTE ADMIN (gestion complète)
-============================= */
-
+//Routes Admins
 router.get('/api/admin/quizzes', authMiddleware, async (_req: Request, res: Response) => {
   try {
     const quizzes = await Quiz.find()

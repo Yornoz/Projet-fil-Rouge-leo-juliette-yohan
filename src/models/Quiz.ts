@@ -7,7 +7,7 @@ export interface Choice {
 
 export interface Question {
   text: string;
-  choices: Choice[]; // >= 2, au moins une correcte
+  choices: Choice[]; 
   allowMultiple?: boolean; 
 }
 

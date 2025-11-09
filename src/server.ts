@@ -8,7 +8,6 @@ const PORT = 3000;
 const startServer = async () => {
   await connectDB();
 
-  // 🧠 Création de données de test (si la base est vide)
   const userCount = await User.countDocuments();
   const quizCount = await Quiz.countDocuments();
 

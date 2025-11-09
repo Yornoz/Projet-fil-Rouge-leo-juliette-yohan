@@ -78,7 +78,6 @@
           </div>
         </form>
 
-        <!-- Zone messages -->
         <div id="msg" class="alert d-none mt-3" role="alert"></div>
 
       </div>
@@ -92,7 +91,6 @@
     const msg = document.getElementById('msg');
 
     addQuestionBtn.addEventListener('click', addQuestion);
-    // Au moins 1 question au départ
     addQuestion();
 
     function addQuestion() {
@@ -128,7 +126,6 @@
       addChoiceBtn.addEventListener('click', () => addChoice(choicesEl));
       removeQuestionBtn.addEventListener('click', () => qDiv.remove());
 
-      // 2 choix par défaut
       addChoice(choicesEl); addChoice(choicesEl);
     }
 
@@ -186,8 +183,6 @@
         if (!q.choices.some(c => c.isCorrect))
           return showMsg('warning', `La question ${i+1} doit avoir au moins une bonne réponse.`);
       }
-
-      // envoi
       try {
         document.getElementById('submitBtn').disabled = true;
         const res = await fetch('/api/quizzes', {

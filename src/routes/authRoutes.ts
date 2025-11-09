@@ -5,13 +5,13 @@ import User from '../models/User';
 
 const router = Router();
 
-// Route inscription
+
 router.post('/register', register);
 
-// Route connexion
+
 router.post('/login', login);
 
-// Interface locale pour TypeScript
+
 interface AuthRequest extends Request {
   user?: {
     _id: string;
@@ -21,7 +21,7 @@ interface AuthRequest extends Request {
   };
 }
 
-// Route profil protégé
+
 router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user?._id).select('-password'); // ne jamais renvoyer le mot de passe

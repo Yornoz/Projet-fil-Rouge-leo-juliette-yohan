@@ -9,7 +9,7 @@ import { isAdmin, authMiddleware } from './middleware/authMiddleware';
 
 const app = express();
 app.use(express.json());
-app.use(cookieParser()); // ✅ important
+app.use(cookieParser()); 
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -37,7 +37,6 @@ app.get('/lesquiz', async (req, res) => {
   }
 });
 
-// ✅ Nouvelle route protégée
 app.get('/admin', authMiddleware, isAdmin, (req, res) => {
   res.render('users');
 });

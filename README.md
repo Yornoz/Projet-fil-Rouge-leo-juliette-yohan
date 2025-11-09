@@ -103,7 +103,7 @@ Bouton pannel admin sur la page d'acueil qui mène via une route sécurisée, à
 Finalement, les mots de passes pour tester les comptes en tant que admin et users: 
 Admin - admin@gmail.com - MDP= 123456 (visible en code dur sur app.ts ligne 15).
 A vous de tester de créer un utilisateur classique pour tester la fonction d'incscription et de connexion, ainsi que rôle.
-Quizs à tester déjà crée: Culture Générale et Foot
+Quizs à tester déjà crée: Culture Générale et Foot (malhueresement ces deux quizs étant déjà dans la base de données, ils ne sont pas modifiable via le pannel admin. Pour effectuer un test avec le pannel admin, cela fonctionne uniquement avec tous les nouveaux quizs ajoutés)
 
 
 Merci en espérant que ce READ ME vous aura aidé.
